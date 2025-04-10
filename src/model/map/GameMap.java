@@ -1,6 +1,12 @@
 package model.map;
 
+import controller.GameController;
+import model.heroes.Hero;
+import org.junit.jupiter.api.Test;
+
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GameMap {
     private TerrainType[][] terrain;
@@ -109,7 +115,7 @@ public class GameMap {
         } else if (map[x][y].equals("Z")) {
             return "Z";
         }
-        return null; // No resource
+        return null;
     }
     public TerrainType[][] getTerrain() {
         return terrain;
@@ -133,5 +139,9 @@ public class GameMap {
 
     public int getEnemyCastleY() {
         return enemyCastleY;
+    }
+
+    public void setMap(String[][] map) {
+        this.map = map;
     }
 }

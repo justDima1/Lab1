@@ -3,6 +3,8 @@ package view;
 import model.City;
 import model.heroes.Hero;
 import model.map.TerrainType;
+import org.junit.jupiter.api.Test;
+
 import java.util.List;
 
 public class MapView {
@@ -48,4 +50,5 @@ public class MapView {
             System.out.println();
         }
     }
+
 }

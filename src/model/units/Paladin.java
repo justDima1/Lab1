@@ -2,6 +2,6 @@ package model.units;
 
 public class Paladin extends Unit {
     public Paladin() {
-        super( 15, 30, 20, 80);
+        super( 25, 30, 30, 80);
     }
 }

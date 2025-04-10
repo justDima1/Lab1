@@ -15,11 +15,15 @@ public class Army {
     }
 
     public void addUnit(Unit unit) {
-        this.units.add(unit);
+        units.add(unit);
+        unit.setArmy(this); // Устанавливаем связь с армией
     }
 
     public void removeUnit(Unit unit) {
+        //System.out.println("Размер армии перед удалением: " + units.size());
         this.units.remove(unit);
+        //System.out.println("Удаляемый юнит: " + unit);
+        System.out.println("Размер армии после удаления: " + units.size());
     }
 
     public boolean isEmpty() {

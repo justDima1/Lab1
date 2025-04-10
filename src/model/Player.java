@@ -11,6 +11,7 @@ public class Player {
     private Hero currentHero; // Текущий герой
     private int gold;
     private String gems;
+    private City city;
 
     public Player(String name, Hero hero, int startGold) { // Изменяем конструктор
         this.name = name;
@@ -49,5 +50,12 @@ public class Player {
 
     public void setGems(String gems) {
         this.gems = gems;
+    }
+    public City getCity() {
+        return city;
+    }
+
+    public void setCity(City city) {
+        this.city = city;
     }
 }

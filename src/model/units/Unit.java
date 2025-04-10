@@ -6,6 +6,7 @@ public class Unit {
     private int health;
     private int cost;
     private String name;
+    private Army army;
 
     public Unit(int attack, int defense, int health, int cost) {
         this.attack = attack;
@@ -38,7 +39,18 @@ public class Unit {
     public void takeDamage(int damage) {
         this.health -= damage;
         if (this.health < 0) {
-            this.health = 0; // Prevent health from going below 0
+            this.health = 0;
         }
+    }
+    public Army getArmy() {
+        return army;
+    }
+
+    public void setArmy(Army army) {
+        this.army = army;
+    }
+
+    public void setAttack(int i) {
+
     }
 }

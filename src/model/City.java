@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.buildings.*;
+import org.junit.jupiter.api.Test;
 
 public class City {
     private int x;
@@ -54,7 +55,7 @@ public class City {
                 return (TownHall) building;
             }
         }
-        return null; // Or throw an exception if a TownHall should always exist
+        return null;
     }
     public boolean hasTownHall() {
         return getTownHall() != null;
@@ -68,5 +69,12 @@ public class City {
         }
         return recruitBuildings;
     }
-    
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
 }

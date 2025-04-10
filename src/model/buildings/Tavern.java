@@ -41,8 +41,8 @@ public class Tavern extends Building{ // Tavern теперь подкласс Bu
     private List<Hero> generateHeroes() {
         List<Hero> heroes = new ArrayList<>();
         // Создаем несколько героев с разными характеристиками
-        heroes.add(new Hero(1, 1));
-        heroes.add(new Hero(1, 1));
+        heroes.add(new Hero(1, 1, "Соня"));
+        heroes.add(new Hero(1, 1, "Вика"));
         return heroes;
     }
 }

@@ -2,6 +2,6 @@ package model.units;
 
 public class Pikeman extends Unit {
     public Pikeman() {
-        super(20, 8, 40, 20);
+        super(10, 8, 12, 20);
     }
 }

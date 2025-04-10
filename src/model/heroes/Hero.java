@@ -4,6 +4,7 @@ import model.units.Archer;
 import model.units.Army;
 import model.units.Pikeman;
 import model.units.Swordsman;
+import org.junit.jupiter.api.Test;
 
 public class Hero {
     private int x;
@@ -15,12 +16,13 @@ public class Hero {
     private int stableBonusTurnsLeft;
     private int movesLeft = 5;
 
-    public Hero(int x, int y) {
+    public Hero(int x, int y, String name) {
         this.x = x;
         this.y = y;
         this.gold = 1000;
         this.gems = 10;
         this.army = new Army();
+        this.name = name;
         for (int i = 0; i < 10; i++) {
             army.addUnit(new Archer());
         }
@@ -100,4 +102,5 @@ public class Hero {
     public void setMovesLeft(int movesLeft) {
         this.movesLeft = movesLeft;
     }
+
 }

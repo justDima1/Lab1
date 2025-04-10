@@ -1,17 +1,18 @@
 package controller;
 
-import model.BattleMap;
 import model.City;
 import model.Player;
-import model.buildings.*;
+import model.buildings.Building;
+import model.buildings.Tavern;
+import model.buildings.TownHall;
 import model.heroes.Hero;
 import model.map.GameMap;
 import model.units.*;
 import model.units.Stack;
 import view.CityView;
 import view.MapView;
+
 import java.util.*;
-import java.util.Random;
 
 public class GameController {
     private City playerCity;
@@ -26,22 +27,24 @@ public class GameController {
     private Random random = new Random();
     private int movesPerTurn = 5;
     private int movesLeft = movesPerTurn;
-    private BattleController battleController;
+    private BattleController battleController = new BattleController();
     private int turnsSinceLastCollection = 5;
     private CityView cityView;
     private Tavern tavern;
-    private List<Player> players;
+    List<Player> players;
     private List<Hero> heroes;
     private boolean playerTurnStarted = false;
     private Player player;
     private Hero currentHero;
+    protected AIController aiController;
+    private int turnsCount = 0;
 
     public GameController() {
         scanner = new Scanner(System.in);
         mapWidth = 10;
         mapHeight = 10;
-        hero = new Hero(1, 1);
-        aiHero = new Hero(8, 8);
+        hero = new Hero(1, 1, "Саня");
+        aiHero = new Hero(8, 8, "Саня");
         battleController = new BattleController();
         cityView = new CityView(scanner);
 
@@ -74,76 +77,77 @@ public class GameController {
     public void setPlayers(List<Player> players) {
         this.players = players;
     }
-    private void handleHeroInCity() {
-        Hero currentHero = players.get(0).getCurrentHero();
-        cityView.viewHeroArmy(currentHero); //армия перед меню
-        cityView.displayCityMenu(playerCity, currentHero, player);
 
-        int choice = cityView.getChoice();
-        switch (choice) {
-            case 1:
-                cityView.viewBuildings(playerCity);
-                handleHeroInCity();
-                break;
-            case 2:
-                cityView.buildBuilding(playerCity, currentHero);
-                if (playerCity.getBuildings().stream().anyMatch(building -> building.getClass().getSimpleName().equals("Stable"))) {
-                    currentHero.setStableBonusTurnsLeft(5); //Используем currentHero
-                    System.out.println("Бонус от конюшни активирован");
-                }
-                cityView.displayCityMenu(playerCity, currentHero, player);
-                handleHeroInCity();
-                break;
-            case 3:
-                cityView.recruitUnits(playerCity, currentHero);
-                //System.out.println("\n--- Армия после мобилизации ---");
-                cityView.displayCityMenu(playerCity, currentHero, player);
-                handleHeroInCity();
-                break;
-            case 4:
-                cityView.viewHeroArmy(currentHero);
-                handleHeroInCity();
-                break;
-            case 5:
-                System.out.println("Выходим на свежий воздух...");
-                int exitX = 1;
-                int exitY = 1;
-                // Check if the exit coordinates are valid
-                if (exitX >= 0 && exitX < mapWidth && exitY >= 0 && exitY < mapHeight) {
-                    String tile = gameMap.getMap()[exitX][exitY];
-                    if (!tile.equals("T") && !tile.equals("X") && !(exitX == aiHero.getX() && exitY == aiHero.getY())) {
-                        currentHero.setX(exitX);
-                        currentHero.setY(exitY);
-                        System.out.println("Hero exited to (" + exitX + ", " + exitY + ")");
-                    } else {
-                        System.out.println("The exit coordinates are not available.");
+        public void handleHeroInCity() {
+            Hero currentHero = players.get(0).getCurrentHero();
+            cityView.viewHeroArmy(currentHero); //армия перед меню
+            cityView.displayCityMenu(playerCity, currentHero, player);
+
+            int choice = cityView.getChoice();
+            switch (choice) {
+                case 1:
+                    cityView.viewBuildings(playerCity);
+                    handleHeroInCity();
+                    break;
+                case 2:
+                    cityView.buildBuilding(playerCity, currentHero);
+                    if (playerCity.getBuildings().stream().anyMatch(building -> building.getClass().getSimpleName().equals("Stable"))) {
+                        currentHero.setStableBonusTurnsLeft(5); //Используем currentHero
+                        System.out.println("Бонус от конюшни активирован");
                     }
-                } else {
-                    System.out.println("The exit coordinates are out of the map.");
-                }
-                break;
-            case 6:
-                if (playerCity.hasTownHall()) {
-                    TownHall townHall = playerCity.getTownHall();
-                    if (currentHero.getGold() >= townHall.getUpgradeCost()) { //Используем currentHero
-                        currentHero.setGold(currentHero.getGold() - townHall.getUpgradeCost()); //Используем currentHero
-                        townHall.upgrade();
-                        System.out.println("Кремль прокачен до " + townHall.getLevel() + "!");
+                    cityView.displayCityMenu(playerCity, currentHero, player);
+                    handleHeroInCity();
+                    break;
+                case 3:
+                    cityView.recruitUnits(playerCity, currentHero);
+                    cityView.displayCityMenu(playerCity, currentHero, player);
+                    handleHeroInCity();
+                    break;
+                case 4:
+                    cityView.viewHeroArmy(currentHero);
+                    handleHeroInCity();
+                    break;
+                case 5:
+                    System.out.println("Выходим на свежий воздух...");
+                    int exitX = 1;
+                    int exitY = 1;
+                    // Check if the exit coordinates are valid
+                    if (exitX >= 0 && exitX < mapWidth && exitY >= 0 && exitY < mapHeight) {
+                        String tile = gameMap.getMap()[exitX][exitY];
+                        if (!tile.equals("T") && !tile.equals("X") && !(exitX == aiHero.getX() && exitY == aiHero.getY())) {
+                            currentHero.setX(exitX);
+                            currentHero.setY(exitY);
+                            System.out.println("Hero exited to (" + exitX + ", " + exitY + ")");
+                        } else {
+                            System.out.println("The exit coordinates are not available.");
+                        }
                     } else {
-                        System.out.println("Не хватает золота на Кремль.");
+                        System.out.println("The exit coordinates are out of the map.");
                     }
-                } else {
-                    System.out.println("No TownHall.");
-                }
-            case 7:
-                visitTavern();
-                break;
-            default:
-                System.out.println("Invalid choice.");
-                handleHeroInCity();
+                    break;
+                case 6:
+                    if (playerCity.hasTownHall()) {
+                        TownHall townHall = playerCity.getTownHall();
+                        if (currentHero.getGold() >= townHall.getUpgradeCost()) { //Используем currentHero
+                            currentHero.setGold(currentHero.getGold() - townHall.getUpgradeCost()); //Используем currentHero
+                            townHall.upgrade();
+                            System.out.println("Кремль прокачен до " + townHall.getLevel() + "!");
+                        } else {
+                            System.out.println("Не хватает золота на Кремль.");
+                        }
+                    } else {
+                        System.out.println("No TownHall.");
+                    }
+                case 7:
+                    visitTavern();
+                    break;
+                default:
+                    System.out.println("Invalid choice.");
+                    handleHeroInCity();
+            }
         }
-    }
-    private List<int[]> getAvailableExitCoordinates() {
+
+    public void getAvailableExitCoordinates() {
         List<int[]> availableCoordinates = new ArrayList<>();
         int cityX = playerCity.getX();
         int cityY = playerCity.getY();
@@ -168,26 +172,38 @@ public class GameController {
                 }
             }
         }
-        return availableCoordinates;
     }
     public void startGame() {
         players = new ArrayList<>(); // Создаем список игроков
 
-        Hero initialHero = new Hero(1, 1); // Создаем первого героя
+        Hero initialHero = new Hero(1, 1, "Саня"); // Создаем первого героя и даем ему имя "Саня"
         Player player1 = new Player("Player", initialHero, 1000);
         players.add(player1); // Добавляем игрока в список игроков
-        Player player2 = new Player("AI", aiHero, 1000);
-        players.add(player2);
-        players.get(0).setCurrentHero(initialHero);
-        //players.get(0).getHeroes().add(initialHero);
 
-        while (true) {
+        Hero aiHero = new Hero(8, 8, "СаняИИ"); // Создаем второго героя (AI) и даем ему имя "СаняИИ"
+        Player player2 = new Player("AI", aiHero, 1000);
+        player2.setCity(new City("ИИ Сити", 8, 8));
+        players.add(player2);
+
+        players.get(0).setCurrentHero(initialHero);
+        players.get(1).setCurrentHero(aiHero);
+
+        aiController = new AIController(mapWidth, mapHeight, this, players.get(1), gameMap);
+        startPlayerTurn();
+
+        while (players.get(0).getCurrentHero() != null && players.get(1).getCurrentHero() != null) {
             Hero currentHero = players.get(0).getCurrentHero();
-            List<Hero> heroes = players.get(0).getHeroes();
-            mapView.displayMap(hero.getX(), hero.getY(), aiHero.getX(), aiHero.getY(), mapWidth, mapHeight, gameMap.getTerrain(), gameMap.getMap(), 0, 0, 9, 9, playerCity, heroes, currentHero);
+            Hero currentAIHero = players.get(1).getCurrentHero(); //  Получаем текущего героя AI
+
+            mapView.displayMap(currentHero.getX(), currentHero.getY(), currentAIHero.getX(), currentAIHero.getY(), mapWidth, mapHeight, gameMap.getTerrain(), gameMap.getMap(), 0, 0, 9, 9, playerCity, players.get(0).getHeroes(), currentHero);
             displayHeroStats();
-            displayAiHeroStats();
             processInput();
+        }
+        System.out.println("Игра окончена!");
+        if (players.get(0).getCurrentHero() == null) {
+            System.out.println("ИИ победил!");
+        } else {
+            System.out.println("Игрок победил!");
         }
     }
     private void displayHeroStats() {
@@ -199,73 +215,93 @@ public class GameController {
         System.out.println("Осталось шагов до изнеможения: " + movesLeft);
         System.out.println("Enter command: (w, a, s, d, q, e, z, x, f, g, quit)");
     }
-    private void displayAiHeroStats() {
+    /*private void displayAiHeroStats() {
         System.out.println("AI Gold: " + aiHero.getGold());
         System.out.println("AI Gems: " + aiHero.getGems());
-    }
-
-    public void aiTurn() {
-        currentPlayer = 2;
-        System.out.println("AI turn started");
+    }*/
+    private void displayAiArmy() {
         Hero aiHero = players.get(1).getCurrentHero();
-        // aiHero.setMovesLeft(5);
-        Hero playerHero = players.get(0).getCurrentHero();
-        if (aiHero == null) {
-            System.out.println("Герой победил! ИИ уничтожен.");
-            System.exit(0);
-        }
-        // Проверяем, не началась ли битва в начале хода ИИ
-        if (aiHero.getX() == playerHero.getX() && aiHero.getY() == playerHero.getY()) {
-            battle(playerHero, aiHero); // Start battle if heroes are on the same tile
+        Map<String, Integer> unitCounts = new HashMap<>();
+
+        aiHero.getArmy().getUnits().forEach(unit -> {
+            String unitType = unit.getClass().getSimpleName();
+            unitCounts.put(unitType, unitCounts.getOrDefault(unitType, 0) + 1);
+        });
+
+        System.out.println("Армия ИИ:");
+        unitCounts.forEach((unitType, count) -> System.out.println("- " + unitType + ": " + count));
+    }
+    
+    public void aiTurn() {
+
+        if (currentPlayer == 2) {
+            System.out.println("AI turn started");
+            Hero aiHero = players.get(1).getCurrentHero();
+            Hero playerHero = players.get(0).getCurrentHero();
+            if (aiHero == null || playerHero == null) {
+                System.out.println("Игра окончена!");
+                return;
+            }
+            Random random = new Random();
+            int dx = random.nextInt(3) - 1;
+            int dy = random.nextInt(3) - 1;
+
+            if (dx == 0 && dy == 0) {
+                dx = 1;
+            }
+            if (moveAiHero(dx, dy, aiHero)) {
+                System.out.println("ИИ пошел на (" + aiHero.getX() + ", " + aiHero.getY() + ")");
+            }
+            if (aiHero.getX() == playerHero.getX() && aiHero.getY() == playerHero.getY()) {
+                System.out.println("Битва начинается!");
+                battle(playerHero, aiHero);
+            }
             System.out.println("AI turn finished");
             currentPlayer = 1;
 
-            Hero currentHero2 = players.get(0).getCurrentHero();
-            List<Hero> heroes = players.get(0).getHeroes();
-            //mapView.displayMap(hero.getX(), hero.getY(), aiHero.getX(), aiHero.getY(), mapWidth, mapHeight, gameMap.getTerrain(), gameMap.getMap(), 0, 0, 9, 9, playerCity, heroes, currentHero2);
-            displayHeroStats();
-            return; // Завершаем ход ИИ, если началась битва
+            startPlayerTurn();
+            playerTurnStarted = false;
         }
-        // Если битва не началась, ИИ делает ход
-        Random random = new Random();
-        int dx = random.nextInt(3) - 1; // -1, 0 или 1
-        int dy = random.nextInt(3) - 1; // -1, 0 или 1
-        // Проверяем, что ИИ не пытается стоять на месте
-        if (dx == 0 && dy == 0) {
-            dx = 1;
-        }
-
-        moveAiHero(dx, dy, aiHero);
-        aiHero.setMovesLeft(aiHero.getMovesLeft() - 1);
-
-        System.out.println("AI turn finished");
-        currentPlayer = 1;
-        Hero currentHero = players.get(0).getCurrentHero();
-        TownHall townHall = null;
-        if (playerCity != null && playerCity.getBuildings() != null) {
-
-            for (Building building : playerCity.getBuildings()) {
-                if (building instanceof TownHall) {
-                    townHall = (TownHall) building;
-                    break;
-                }
-            }
-
-            int goldIncome = 250;
-            if (townHall != null) {
-                goldIncome = townHall.getGoldIncome();
-            }
-            currentHero.setGold(currentHero.getGold() + goldIncome);
-            System.out.println("Собрано " + goldIncome + " золота налогов с граждан");
-        }
-
-        Hero currentHero2 = players.get(0).getCurrentHero();
-        List<Hero> heroes = players.get(0).getHeroes();
-        mapView.displayMap(hero.getX(), hero.getY(), aiHero.getX(), aiHero.getY(), mapWidth, mapHeight, gameMap.getTerrain(), gameMap.getMap(), 0, 0, 9, 9, playerCity, heroes, currentHero2);
-        displayHeroStats();
-        startPlayerTurn();
-        playerTurnStarted = false;
     }
+
+    private boolean moveAiHero(int dx, int dy, Hero currentHero) {
+        if (currentHero.getMovesLeft() > 0) {
+            int newX = currentHero.getX() + dx;
+            int newY = currentHero.getY() + dy;
+            if (newX >= 0 && newX < mapWidth && newY >= 0 && newY < mapHeight) {
+                String tile = gameMap.getMap()[newX][newY];
+                if (!tile.equals("T") && !tile.equals("X")) {
+                    if (tile.equals("G")) {
+                        currentHero.setGold(currentHero.getGold() + 500);
+                        gameMap.getMap()[newX][newY] = ".";
+                    } else if (tile.equals("Z")) {
+                        if (turnsSinceLastCollection >= 5) {
+                            currentHero.setGems(currentHero.getGems() + 5);
+                            turnsSinceLastCollection = 0;
+                            System.out.println("Собрано 5 кристаллов с шахты!");
+                        } else {
+                            System.out.println("Шахта пока пуста.  " + (5 - turnsSinceLastCollection) + " ходов.");
+                        }
+                    }
+                    currentHero.setX(newX);
+                    currentHero.setY(newY);
+                    System.out.println("ИИ передвинулся   (" + newX + ", " + newY + ")");
+                    currentHero.setMovesLeft(currentHero.getMovesLeft() - 1);
+                    return true;
+                } else {
+                    System.out.println("ИИ не может пройти.");
+                    return false;
+                }
+            } else {
+                System.out.println("ИИ не может пройти.");
+                return false;
+            }
+        } else {
+            System.out.println("ИИ устал.");
+            return false;
+        }
+    }
+
     private void visitTavern() {
         System.out.println("\n--- Трактир ---");
         List<Building> buildings = playerCity.getBuildings();
@@ -319,43 +355,7 @@ public class GameController {
             }
         }
     }
-    public boolean moveAiHero(int dx, int dy, Hero currentHero) {
-        int newX = currentHero.getX() + dx;
-        int newY = currentHero.getY() + dy;
 
-        if (newX >= 0 && newX < mapWidth && newY >= 0 && newY < mapHeight) {
-            String tile = gameMap.getMap()[newX][newY];
-            if (!tile.equals("T") && !tile.equals("X")) {
-                  /*if (tile.equals("G")) {
-                   currentHero.setGold(currentHero.getGold() + 500);
-                        gameMap.getMap()[newX][newY] = ".";
-                    } else if (tile.equals("Z")) {
-                        if (turnsSinceLastCollection >= 5) {
-                            currentHero.setGems(currentHero.getGems() + 5);
-                            turnsSinceLastCollection = 0;
-                            System.out.println("Собрано 5 кристаллов с шахты!");
-                        } else {
-                            System.out.println("Шахта пока пуста. Осталось " + (5 - turnsSinceLastCollection) + " ходов.");
-                        }
-                    }*/
-
-                currentHero.setX(newX);
-                currentHero.setY(newY);
-                Hero currentHero2 = players.get(0).getCurrentHero();
-                List<Hero> heroes = players.get(0).getHeroes();
-
-                //mapView.displayMap(hero.getX(), hero.getY(), aiHero.getX(), aiHero.getY(), mapWidth, mapHeight, gameMap.getTerrain(), gameMap.getMap(), 0, 0, 9, 9, playerCity, heroes, currentHero2);
-                System.out.println("пошел на  (" + newX + ", " + newY + ")");
-                return true;
-            } else {
-                System.out.println("Стой! ушибешься");
-                return false;
-            }
-        } else {
-            System.out.println("Стой! ушибешься");
-            return false;
-        }
-    }
     private List<Stack> createUnitStacks(Army army) {
         List<Stack> stacks = new ArrayList<>();
         Map<Class<? extends Unit>, Integer> unitCounts = new HashMap<>();
@@ -374,124 +374,77 @@ public class GameController {
         }
         return stacks;
     }
-    private void battle(Hero hero1, Hero hero2) {
-        System.out.println("Начинается битва между героями!");
-        Army army1 = hero1.getArmy();
-        Army army2 = hero2.getArmy();
-        String winner = null;
-        Random random = new Random();
-        boolean hero1First = random.nextBoolean();
-        // 1. Создаем стеки юнитов (группы юнитов одного типа)
-        List<Stack> stacks1 = createUnitStacks(army1);
-        List<Stack> stacks2 = createUnitStacks(army2);
 
-        while (!stacks1.isEmpty() && !stacks2.isEmpty()) {
-            // 2. Выбираем атакующий и защищающийся стеки
-            Stack attacker = stacks1.get(0);
-            Stack defender = stacks2.get(0);
-            // 3. Атака
-            System.out.println(attacker.getUnitType().getSimpleName() + " атакует " + defender.getUnitType().getSimpleName() + " и наносит " + attacker.getTotalAttack() + " урона!");
-            defender.takeDamage(attacker.getTotalAttack());
-            // 4. Проверяем, выжил ли защищающийся стек
-            if (defender.getSize() <= 0) {
-                System.out.println(defender.getUnitType().getSimpleName() + " уничтожен!");
-                stacks2.remove(0);
-            } else {
-                System.out.println("Осталось " + defender.getSize() + " " + defender.getUnitType().getSimpleName());
-            }
-
-            // 5. Меняем очереди
-            stacks1.remove(0);
-            if (!stacks2.isEmpty()) {
-                stacks1.add(stacks2.remove(0));
-            }
-        }
-
-        // 6. Определяем победителя
-        if (stacks1.isEmpty()) {
-            System.out.println("ИИ победил!");
-            winner = "ИИ";
-            hero2.setGold(hero2.getGold() + 500); // награждаем ИИ
-            if (hero1 != null) {
-                gameMap.getMap()[hero1.getX()][hero1.getY()] = "."; // очищаем клетку карты
-            }
-        } else if (stacks2.isEmpty()) {
-            System.out.println("Герой победил!");
-            winner = "Герой";
-            hero1.setGold(hero1.getGold() + 500); // награждаем героя
-            if (hero2 != null) {
-                gameMap.getMap()[hero2.getX()][hero2.getY()] = "."; // очищаем клетку карты
-            }
-        } else {
-            System.out.println("Ничья!");
-            winner = null;
-        }
-        // Завершаем игру, если кто-то проиграл
-        if (winner != null) {
-            if (winner.equals("Герой")) {
-                aiHero = null; // убираем героя ИИ
-                System.out.println("ИИ был уничтожен.");
-                System.exit(0);
-            } else if (winner.equals("ИИ")) {
-                hero = null; // убираем героя игрока
-                System.out.println("Герой был уничтожен.");
-                System.exit(0);
-            }
+    public void battle(Hero hero1, Hero hero2) {
+        BattleController battleController = new BattleController();
+        System.out.println("Началась битва между " + hero1.getName() + " и " + hero2.getName() + "!");
+        battleController.startBattle(hero1,hero2);
+        if (!hero1.getArmy().getUnits().isEmpty() && hero2.getArmy().getUnits().isEmpty()) {
+            players.get(1).setCurrentHero(null);
+            System.out.println("Игрок проиграл");
+        } else if (hero1.getArmy().getUnits().isEmpty() && !hero2.getArmy().getUnits().isEmpty()) {
+            players.get(0).setCurrentHero(null);
+            System.out.println("ИИ проиграл");
         }
     }
+
     public void processInput() {
         if (currentPlayer == 1) {
-            //System.out.println("processInput() called");
-            //System.out.println("currentPlayer = " + currentPlayer);
-            Hero currentHero = players.get(0).getCurrentHero(); //Получаем текущего героя
+            Hero currentHero = null;
+            Hero aiHero = null;
+            try {
+                currentHero = players.get(0).getCurrentHero(); // Получаем текущего героя
+                aiHero = players.get(1).getCurrentHero(); // Получаем героя ИИ
+            } catch (Exception e) {
+                System.exit(0);
+            }
+
 
             if (!playerTurnStarted) {
                 startPlayerTurn();
                 playerTurnStarted = true;
             }
 
-            if (aiHero == null && hero == null) {
-                System.out.println("Игра окончена! Ничья.");
-                System.exit(0);
+            // Проверяем, остались ли герои в живых
+            if (currentHero == null) {
+                System.out.println("ИИ победил! Герой уничтожен.");
+                return;
             }
             if (aiHero == null) {
                 System.out.println("Герой победил! ИИ уничтожен.");
-                System.exit(0);
+                return;
             }
-            if (hero == null) {
-                System.out.println("ИИ победил! Герой уничтожен.");
-                System.exit(0);
-            }
+
             if (currentHero.getX() == playerCity.getX() && currentHero.getY() == playerCity.getY()) {
-                currentHero = players.get(0).getCurrentHero();
                 handleHeroInCity();
             }
+
             if (currentHero.getMovesLeft() > 0) {
                 try {
                     String command = scanner.nextLine();
-                    //currentHero.setMovesLeft(currentHero.getMovesLeft() - 1);
                     boolean moved = false;
+
                     switch (command) {
                         case "w":
-                            moved = moveHero(-1, 0, currentHero);
-                            break;
-                        case "a":
                             moved = moveHero(0, -1, currentHero);
                             break;
+                        case "a":
+                            moved = moveHero(-1, 0, currentHero);
+                            break;
                         case "s":
-                            moved = moveHero(1, 0, currentHero);
+                            moved = moveHero(0, 1, currentHero);
                             break;
                         case "d":
-                            moved = moveHero(0, 1, currentHero);
+                            moved = moveHero(1, 0, currentHero);
                             break;
                         case "q":
                             moved = moveHero(-1, -1, currentHero);
                             break;
                         case "e":
-                            moved = moveHero(-1, 1, currentHero);
+                            moved = moveHero(1, -1, currentHero);
                             break;
                         case "z":
-                            moved = moveHero(1, -1, currentHero);
+                            moved = moveHero(-1, 1, currentHero);
                             break;
                         case "x":
                             moved = moveHero(1, 1, currentHero);
@@ -503,6 +456,9 @@ public class GameController {
                             currentPlayer = 2;
                             aiTurn();
                             break;
+                        case "ai":
+                            displayAiArmy();
+                            break;
                         case "addmoney":
                             currentHero.setGold(currentHero.getGold() + 5000);
                             break;
@@ -512,36 +468,17 @@ public class GameController {
                         default:
                             System.out.println("Invalid command.");
                     }
+
                     if (moved) {
-                        currentHero.setMovesLeft(currentHero.getMovesLeft()-1);
+                        currentHero.setMovesLeft(currentHero.getMovesLeft() - 1);
                     }
 
-                    if (currentHero.getX() == aiHero.getX() && currentHero.getY() == aiHero.getY()) {
-                        System.out.println("Битва начинается!");
-                        System.out.println("Координаты героя: (" + currentHero.getX() + ", " + currentHero.getY() + ")");
-                        System.out.println("Координаты ИИ: (" + aiHero.getX() + ", " + aiHero.getY() + ")");
-                        battle(currentHero, aiHero);
-                        return;
-                    }
-                    Hero currentHero2 = players.get(0).getCurrentHero();
-                    List<Hero> heroes = players.get(0).getHeroes();
                     displayHeroStats();
-
-                    if (players.get(0).getCurrentHero() == null) {
-                        System.out.println("ИИ победил! Герой уничтожен");
-                        System.exit(0); // End
-                    }
-
-                    if (aiHero == null) {
-                        System.out.println("Герой победил! ИИ уничтожен.");
-                        System.exit(0); // End
-                    }
 
                 } catch (Exception e) {
                     System.out.println("Error reading input: " + e.getMessage());
                 } finally {
                     scanner = new Scanner(System.in);
-
                 }
             } else {
                 currentPlayer = 2;
@@ -549,6 +486,8 @@ public class GameController {
             }
         }
     }
+
+
     public int getChoice() {
         while (true) {
             try {
@@ -592,7 +531,11 @@ public class GameController {
             System.out.println("Неверный выбор.");
         }
     }
-    private boolean moveHero(int dx, int dy, Hero currentHero) {
+    public boolean moveHero(int dx, int dy, Hero currentHero) {
+        if (currentHero == null) {
+            System.out.println("Нет текущего героя!");
+            return false;
+        }
         if (currentHero.getMovesLeft() > 0) {
             int newX = currentHero.getX() + dx;
             int newY = currentHero.getY() + dy;
@@ -612,6 +555,15 @@ public class GameController {
                             System.out.println("Шахта пока пуста. Осталось " + (5 - turnsSinceLastCollection) + " ходов.");
                         }
                     }
+
+                    // Проверка столкновения с AI
+                    Hero aiHero = players.get(1).getCurrentHero();
+                    if (newX == aiHero.getX() && newY == aiHero.getY()) {
+                        System.out.println("Битва начинается!");
+                        battle(currentHero, aiHero);
+                        return false; // Битва началась, передвижения не будет
+                    }
+
                     currentHero.setX(newX);
                     currentHero.setY(newY);
                     System.out.println("Передвинулся на  (" + newX + ", " + newY + ")");
@@ -633,5 +585,67 @@ public class GameController {
     public void startPlayerTurn() {
         Hero currentHero = players.get(0).getCurrentHero();
         currentHero.setMovesLeft(5);
+
+    }
+
+
+    public GameMap getGameMap() {
+        return gameMap;
+    }
+
+    public void setGameMap(GameMap gameMap) {
+        
+    }
+
+    public void setHero(Hero hero) {
+    }
+
+    public void handleHeroInCity(Hero hero, City playerCity, Scanner scanner) {
+    }
+
+    public Hero getHero() {
+        return hero;
+    }
+
+    public City getPlayerCity() {
+        return playerCity;
+    }
+
+    public void moveHeroTo(int x, int y) {
+        hero.setX(x);
+        hero.setY(y);
+    }
+
+    public void increaseTurnsSinceLastCollection() {
+        turnsSinceLastCollection++;
+    }
+    public int getTurnsSinceLastCollection() {
+        return turnsSinceLastCollection;
+    }
+    public void setTurnsSinceLastCollection(int turnsSinceLastCollection) {
+        this.turnsSinceLastCollection = turnsSinceLastCollection;
+    }
+    public void processInputForTest(Hero hero) {
+        // Сначала проверим, находится ли герой на клетке с шахтой
+        if (hero.getX() >= 0 && hero.getX() < mapWidth && hero.getY() >= 0 && hero.getY() < mapHeight) {
+            String tile = gameMap.getMap()[hero.getX()][hero.getY()];
+            if (tile.equals("Z")) {
+                // Теперь проверим, прошло ли достаточно времени с последнего сбора гемов
+                if (turnsSinceLastCollection >= 5) {
+                    // Сброс счетчика и начисление гемов
+                    hero.setGems(hero.getGems() + 5);
+                    turnsSinceLastCollection = 0;
+                    System.out.println("Собрано 5 кристаллов с шахты!");
+                } else {
+                    // Информируем игрока о необходимости подождать
+                    System.out.println("Шахта пока пуста. Осталось " + (5 - turnsSinceLastCollection) + " ходов.");
+                }
+            } else if (tile.equals("G")) {
+                hero.setGold(hero.getGold() + 500);
+                gameMap.getMap()[hero.getX()][hero.getY()] = ".";
+            }
+        } else {
+            System.out.println("Герой не на карте или на недопустимой клетке.");
+        }
     }
 }

@@ -1,19 +1,20 @@
 package view;
 
+import controller.GameController;
 import model.City;
 import model.Player;
 import model.buildings.*;
 import model.heroes.Hero;
+import model.map.GameMap;
+import model.units.*;
 
 import java.util.*;
-import controller.GameController;
-import model.units.*;
 
 public class CityView {
     private int mapWidth;
     private int mapHeight;
-    private controller.GameController gameController;
-    private model.map.GameMap gameMap;
+    private GameController gameController;
+    private GameMap gameMap;
     private Random random = new Random();
     private Hero aiHero;
 
@@ -206,4 +207,5 @@ public class CityView {
             }
         }
     }
+
 }
