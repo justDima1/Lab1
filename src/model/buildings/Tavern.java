@@ -24,8 +24,8 @@ public class Tavern extends Building{ // Tavern теперь подкласс Bu
     public Hero buyHero(int heroIndex, Player player) { //принимает индекс выбранного героя и игрока, который его покупает
         if (heroIndex >= 0 && heroIndex < availableHeroes.size()) {
             Hero hero = availableHeroes.get(heroIndex);
-            if (player.getGold() >= 500) { // Стоимость героя
-                player.setGold(player.getGold() - 500);
+            if (player.getGold().getAmount() >= 500) { // Стоимость героя. ИСПРАВЛЕННАЯ СТРОКА
+                player.getGold().setAmount(player.getGold().getAmount() - 500); // Вычитаем золото
                 availableHeroes.remove(hero); // Убираем героя из таверны
                 return hero;
             } else {

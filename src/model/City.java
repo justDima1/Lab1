@@ -17,7 +17,7 @@ public class City {
         this.x = x;
         this.y = y;
         this.buildings = new ArrayList<>();
-        this.buildings.add(new TownHall()); // Add only TownHall at the beginning
+        this.buildings.add(new TownHall());
     }
 
     public int getX() {
@@ -44,11 +44,13 @@ public class City {
         int income = 0;
         for (Building building : buildings) {
             if (building instanceof TownHall) {
-                income += ((TownHall) building).getGoldIncome();
+                TownHall townHall = (TownHall) building;
+                income = townHall.getGoldIncome(); // Получаем доход от ратуши
             }
         }
         return income;
     }
+
     public TownHall getTownHall() {
         for (Building building : buildings) {
             if (building instanceof TownHall) {

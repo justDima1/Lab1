@@ -1,12 +1,16 @@
 package model.units;
 
-public class Unit {
+import java.io.Serializable;
+
+public class Unit implements Serializable {
+    private static final long serialVersionUID = 1L; // Добавлено serialVersionUID
     private int attack;
     private int defense;
     private int health;
     private int cost;
     private String name;
     private Army army;
+
 
     public Unit(int attack, int defense, int health, int cost) {
         this.attack = attack;
@@ -30,18 +34,22 @@ public class Unit {
     public void setHealth(int health) {
         this.health = health;
     }
+
     public String getName() {
         return name;
     }
+
     public int getCost() {
         return cost;
     }
+
     public void takeDamage(int damage) {
         this.health -= damage;
         if (this.health < 0) {
             this.health = 0;
         }
     }
+
     public Army getArmy() {
         return army;
     }

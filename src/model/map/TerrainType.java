@@ -2,5 +2,12 @@ package model.map;
 
 public enum TerrainType {
     GRASS,
-    SWAMP
+    TREE,
+    SWAMP,
+    STONE,
+    GOLD,
+    GEMS,
+    HERO,
+    ROAD,
+    CITY
 }

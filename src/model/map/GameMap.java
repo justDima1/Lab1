@@ -3,9 +3,7 @@ package model.map;
 import controller.GameController;
 import model.heroes.Hero;
 import org.junit.jupiter.api.Test;
-
 import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GameMap {
@@ -18,22 +16,18 @@ public class GameMap {
     private int enemyCastleX;
     private int enemyCastleY;
     private Random random = new Random();
-
     public GameMap(int width, int height) {
         this.width = width;
         this.height = height;
         this.terrain = new TerrainType[width][height];
         this.map = new String[width][height];
-
-        // Заполняем карту типами местности и инициализируем map
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                terrain[i][j] = random.nextDouble() < 0.7 ? TerrainType.GRASS : TerrainType.SWAMP;
-                map[i][j] = "."; // Initialize map with empty tiles
+                terrain[i][j] = random.nextDouble() < 0.6? TerrainType.GRASS : TerrainType.SWAMP;
+                map[i][j] = ".";
             }
         }
 
-        // Размещаем замки (фиксированное положение)
         castleX = 0;
         castleY = 0;
         enemyCastleX = width - 1;
@@ -44,7 +38,34 @@ public class GameMap {
         placeFixedMine();
         createDiagonalPath();
     }
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(width).append(";").append(height).append("\n");
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                sb.append(terrain[i][j]).append(";");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+    public void loadMapDataFromString(String mapData) {
+        String[] lines = mapData.split("\n");
+        String[] dimensions = lines[0].split(";");
+        this.width = Integer.parseInt(dimensions[0]);
+        this.height = Integer.parseInt(dimensions[1]);
+        this.terrain = new TerrainType[width][height];
 
+        int lineIndex = 1;
+        for (int i = 0; i < width; i++) {
+            String[] cellValues = lines[lineIndex++].split(";");
+            for (int j = 0; j < height; j++) {
+                int ordinal = Integer.parseInt(cellValues[j]);
+                terrain[i][j] = TerrainType.values()[ordinal];
+            }
+        }
+    }
     public int collectResources(int x, int y) {
         if (map[x][y].equals("G")) {
             map[x][y] = "."; // Убираем золото с карты
@@ -143,5 +164,37 @@ public class GameMap {
 
     public void setMap(String[][] map) {
         this.map = map;
+    }
+
+    public void initializeMap() {
+    }
+    public String convertMapToString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(width).append(",").append(height).append("\n");
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                sb.append(terrain[i][j]).append(",");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    public void convertStringToMap(String data) {
+        String[] lines = data.split("\n");
+        String[] dimensions = lines[0].split(",");
+        width = Integer.parseInt(dimensions[0]);
+        height = Integer.parseInt(dimensions[1]);
+        terrain = new TerrainType[height][width];
+
+        for (int i = 0; i < height; i++) {
+            String[] terrainValues = lines[i + 1].split(",");
+            for (int j = 0; j < width; j++) {
+                terrain[i][j] = TerrainType.valueOf(terrainValues[j]);
+            }
+        }
+    }
+
+    public void setTerrain(TerrainType[][] terrain) {
     }
 }

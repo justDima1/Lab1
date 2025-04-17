@@ -1,9 +1,11 @@
 package model.units;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Army {
+public class Army implements Serializable { // Добавлено implements Serializable
+    private static final long serialVersionUID = 1L; // Добавлено serialVersionUID
     private final List<Unit> units;
 
     public Army() {
@@ -16,17 +18,47 @@ public class Army {
 
     public void addUnit(Unit unit) {
         units.add(unit);
-        unit.setArmy(this); // Устанавливаем связь с армией
+        unit.setArmy(this);
     }
 
     public void removeUnit(Unit unit) {
-        //System.out.println("Размер армии перед удалением: " + units.size());
+
         this.units.remove(unit);
-        //System.out.println("Удаляемый юнит: " + unit);
+
         System.out.println("Размер армии после удаления: " + units.size());
     }
 
     public boolean isEmpty() {
         return units.isEmpty();
+    }
+
+    public int getArcherCount() {
+        int count = 0;
+        for (Unit unit : units) {
+            if (unit instanceof Archer) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getPikemanCount() {
+        int count = 0;
+        for (Unit unit : units) {
+            if (unit instanceof Pikeman) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getSwordsmanCount() {
+        int count = 0;
+        for (Unit unit : units) {
+            if (unit instanceof Swordsman) {
+                count++;
+            }
+        }
+        return count;
     }
 }
